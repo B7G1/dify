@@ -165,6 +165,14 @@ class DatabaseConfig(BaseSettings):
             f"{self.DB_EXTRAS}&client_encoding={self.DB_CHARSET}" if self.DB_CHARSET else self.DB_EXTRAS
         ).strip("&")
         db_extras = f"?{db_extras}" if db_extras else ""
+
+        if self.DB_TYPE == "dm":
+            return (
+                f"{self.SQLALCHEMY_DATABASE_URI_SCHEME}://"
+                f"{quote_plus(self.DB_USERNAME)}:{quote_plus(self.DB_PASSWORD)}@{self.DB_HOST}:{self.DB_PORT}/"
+                f"{db_extras}"
+            )
+
         return (
             f"{self.SQLALCHEMY_DATABASE_URI_SCHEME}://"
             f"{quote_plus(self.DB_USERNAME)}:{quote_plus(self.DB_PASSWORD)}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_DATABASE}"
