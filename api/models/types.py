@@ -1,3 +1,4 @@
+import json
 import enum
 import uuid
 from typing import Any, Generic, TypeVar
@@ -75,6 +76,8 @@ class BinaryData(TypeDecorator[bytes | None]):
             return dialect.type_descriptor(BYTEA())
         elif dialect.name == "mysql":
             return dialect.type_descriptor(LONGBLOB())
+        elif dialect.name == "dm":
+            return LargeBinary()
         else:
             return dialect.type_descriptor(LargeBinary())
 
@@ -103,10 +106,14 @@ class AdjustedJSON(TypeDecorator[dict | list | None]):
         else:
             return dialect.type_descriptor(sa.JSON())
 
-    def process_bind_param(self, value: dict | list | None, dialect: Dialect) -> dict | list | None:
+    def process_bind_param(self, value: dict | list | None, dialect: Dialect) -> dict | list | str | None:
+        if dialect.name == "dm" and value is not None:
+            return json.dumps(value)
         return value
 
-    def process_result_value(self, value: dict | list | None, dialect: Dialect) -> dict | list | None:
+    def process_result_value(self, value: dict | list | str | None, dialect: Dialect) -> dict | list | None:
+        if dialect.name == "dm" and isinstance(value, str):
+            return json.loads(value)
         return value
 
 
