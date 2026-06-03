@@ -5,8 +5,69 @@ from alembic import context
 from flask import current_app
 from alembic.ddl.impl import _impls
 from alembic.ddl.oracle import OracleImpl
+import sqlalchemy as sa
+from sqlalchemy import text
 
-_impls.setdefault("dm", OracleImpl)
+class DMImpl(OracleImpl):
+    __dialect__ = "dm"
+
+    def alter_column(
+        self,
+        table_name,
+        column_name,
+        *,
+        nullable=None,
+        server_default=False,
+        name=None,
+        type_=None,
+        schema=None,
+        autoincrement=None,
+        comment=False,
+        existing_comment=None,
+        existing_type=None,
+        existing_server_default=None,
+        existing_nullable=None,
+        existing_autoincrement=None,
+        **kw,
+    ):
+        if type_ is not None or nullable is not None:
+            final_type = type_ or existing_type
+            if final_type is None:
+                final_type = sa.String(length=255)
+
+            type_sql = final_type.compile(dialect=self.dialect)
+
+            nullable_sql = ""
+            if nullable is True:
+                nullable_sql = " NULL"
+            elif nullable is False:
+                nullable_sql = " NOT NULL"
+
+            self._exec(text(f"ALTER TABLE {table_name} MODIFY {column_name} {type_sql}{nullable_sql}"))
+
+            type_ = None
+            nullable = None
+
+        super().alter_column(
+            table_name,
+            column_name,
+            nullable=nullable,
+            server_default=server_default,
+            name=name,
+            type_=type_,
+            schema=schema,
+            autoincrement=autoincrement,
+            comment=comment,
+            existing_comment=existing_comment,
+            existing_type=existing_type,
+            existing_server_default=existing_server_default,
+            existing_nullable=existing_nullable,
+            existing_autoincrement=existing_autoincrement,
+            **kw,
+        )
+
+
+_impls.setdefault("dm", DMImpl)
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
