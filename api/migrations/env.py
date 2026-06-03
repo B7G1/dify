@@ -3,6 +3,10 @@ from logging.config import fileConfig
 
 from alembic import context
 from flask import current_app
+from alembic.ddl.impl import _impls
+from alembic.ddl.oracle import OracleImpl
+
+_impls.setdefault("dm", OracleImpl)
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
