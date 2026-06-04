@@ -4,6 +4,7 @@ from dataclasses import field
 from datetime import datetime
 from typing import Any, Optional
 from uuid import uuid4
+from models.types import AdjustedJSON
 
 import sqlalchemy as sa
 from flask_login import UserMixin
@@ -413,8 +414,8 @@ class TenantPluginAutoUpgradeStrategy(TypeBase):
     upgrade_mode: Mapped[UpgradeMode] = mapped_column(
         EnumText(UpgradeMode, length=16), nullable=False, server_default="exclude", default=UpgradeMode.EXCLUDE
     )
-    exclude_plugins: Mapped[list[str]] = mapped_column(sa.JSON, nullable=False, default_factory=list)
-    include_plugins: Mapped[list[str]] = mapped_column(sa.JSON, nullable=False, default_factory=list)
+    exclude_plugins: Mapped[list[str]] = mapped_column(AdjustedJSON, nullable=False, default_factory=list)
+    include_plugins: Mapped[list[str]] = mapped_column(AdjustedJSON, nullable=False, default_factory=list)
     upgrade_time_of_day: Mapped[int] = mapped_column(sa.Integer, nullable=False, default=0)
     created_at: Mapped[datetime] = mapped_column(
         DateTime, nullable=False, server_default=func.current_timestamp(), init=False
