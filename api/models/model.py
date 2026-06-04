@@ -13,7 +13,7 @@ from uuid import uuid4
 import sqlalchemy as sa
 from flask import request
 from flask_login import UserMixin  # type: ignore[import-untyped]
-from sqlalchemy import BigInteger, Float, Index, PrimaryKeyConstraint, String, exists, func, select, text
+from sqlalchemy import BigInteger, Float, Index, PrimaryKeyConstraint, String, func, select, text
 from sqlalchemy.orm import Mapped, Session, mapped_column
 from typing_extensions import TypedDict
 
@@ -2108,11 +2108,15 @@ class ApiToken(Base):  # bug: this uses setattr so idk the field.
     last_used_at = mapped_column(sa.DateTime, nullable=True)
     created_at = mapped_column(sa.DateTime, nullable=False, server_default=func.current_timestamp())
 
+
     @staticmethod
     def generate_api_key(prefix: str, n: int) -> str:
         while True:
             result = prefix + generate_string(n)
-            if db.session.scalar(select(exists().where(ApiToken.token == result))):
+            token_count = db.session.scalar(
+                select(func.count()).select_from(ApiToken).where(ApiToken.token == result)
+            )
+            if token_count:
                 continue
             return result
 
