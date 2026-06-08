@@ -13,6 +13,23 @@ logger = logging.getLogger(__name__)
 _gevent_compatibility_setup: bool = False
 
 
+def _disable_dm_returning_support() -> None:
+    """Disable SQLAlchemy RETURNING paths for the DM dialect.
+
+    dmSQLAlchemy currently advertises RETURNING support, but its compiler implementation is
+    incompatible with SQLAlchemy 2.x default-fetch compilation. Dify generates UUIDs and
+    tolerates post-fetching defaults, so disabling implicit RETURNING keeps inserts portable.
+    """
+    dialect = db.engine.dialect
+    if dialect.name != "dm":
+        return
+
+    dialect.insert_returning = False
+    dialect.update_returning = False
+    dialect.delete_returning = False
+    dialect.insert_executemany_returning = False
+
+
 def _safe_rollback(connection):
     """Safely rollback database connection.
 
@@ -58,5 +75,6 @@ def init_app(app: DifyApp):
     try:
         with app.app_context():
             _ = db.engine  # triggers engine creation with the configured options
+            _disable_dm_returning_support()
     except Exception:
         logger.exception("Failed to initialize SQLAlchemy engine during app startup")
