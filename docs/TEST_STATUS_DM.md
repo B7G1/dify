@@ -63,13 +63,56 @@ API token lookup and API key delete route issues were fixed.
 Related milestone:
 `dm-api-key-pass`
 
+### Dataset economy indexing smoke
+
+Status: PASS / PARTIAL
+
+Verified commits:
+
+- `5f5e497 fix(dm): disable returning for DM dialect`
+- `df37dd5 fix(dm): normalize segment keywords from DM`
+
+Verified API flow:
+
+- Health, setup, and console login
+- Dataset create
+- Text file upload
+- Document create
+- Economy indexing to completed status
+- Document list and detail
+- Segment list
+- Document delete
+- Dataset delete
+
+Current blockers:
+
+- Plugin Daemon is not listening on `127.0.0.1:5002`; Dataset list/detail returns a plugin model request error.
+- Weaviate is not listening on `127.0.0.1:8080`.
+- Local `ruff` hook/check hangs; verified the touched file with `python -m py_compile` instead.
+
+Environment recovery follow-up:
+
+- Docker Desktop was started from Windows.
+- Weaviate recovered: `dify-weaviate-1` listens on `8080` and `50051`; `/v1/.well-known/ready` returned `200`.
+- Plugin Daemon recovered with `dify-plugin-daemon-local` mapped as `5002:5002`.
+- Plugin model request recovered: `GET http://127.0.0.1:5002/plugin/<tenant-id>/management/models` returned `200`.
+- Dataset list/detail recovered after Plugin Daemon startup.
+
+Final smoke results:
+
+- Dataset create, txt upload, document create, economy indexing, dataset list/detail, document list/detail, segment list, document delete, and dataset delete passed.
+- Economy indexing reached `completed` with `completed_segments=1` and `total_segments=1`.
+- Console model provider probes returned empty model lists for model providers, LLMs, and text embeddings.
+- Chat app creation passed, but chat invocation is blocked by missing model provider configuration.
+- Dataset hit-testing retrieval reached retrieval/marshal response handling, then failed on `api/fields/hit_testing_fields.py` using `fields.List(fields.String)` for segment keywords.
+
 ## Remaining Test Areas
 
 The following areas still need further verification:
 
 1. Full backend regression tests
-2. Dataset creation and retrieval
-3. Document upload and indexing
+2. Dataset list/detail after Plugin Daemon recovery
+3. High-quality document indexing and retrieval after Weaviate recovery
 4. Workflow creation and execution
 5. App publishing and invocation
 6. Plugin runtime
