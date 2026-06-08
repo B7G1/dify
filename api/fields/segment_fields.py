@@ -1,6 +1,24 @@
+import json
+from typing import Any
+
 from flask_restx import fields
 
 from libs.helper import TimestampField
+
+
+class StringListField(fields.Raw):
+    def format(self, value: Any) -> list[str]:
+        if value is None:
+            return []
+        if isinstance(value, str):
+            try:
+                value = json.loads(value)
+            except json.JSONDecodeError:
+                return [value] if value else []
+        if isinstance(value, list):
+            return [str(item) for item in value]
+        return []
+
 
 child_chunk_fields = {
     "id": fields.String,
@@ -31,7 +49,7 @@ segment_fields = {
     "answer": fields.String,
     "word_count": fields.Integer,
     "tokens": fields.Integer,
-    "keywords": fields.List(fields.String),
+    "keywords": StringListField,
     "index_node_id": fields.String,
     "index_node_hash": fields.String,
     "hit_count": fields.Integer,
