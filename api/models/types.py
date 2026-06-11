@@ -62,6 +62,20 @@ class LongText(TypeDecorator[str | None]):
         return value
 
 
+class DMEmptyStringSafeLongText(LongText):
+    _EMPTY_STRING_SENTINEL = "__DIFY_DM_INTERNAL_EMPTY_STRING_SENTINEL_v1__"
+
+    def process_bind_param(self, value: str | None, dialect: Dialect) -> str | None:
+        if dialect.name == "dm" and value == "":
+            return self._EMPTY_STRING_SENTINEL
+        return super().process_bind_param(value, dialect)
+
+    def process_result_value(self, value: str | None, dialect: Dialect) -> str | None:
+        if dialect.name == "dm" and value == self._EMPTY_STRING_SENTINEL:
+            return ""
+        return super().process_result_value(value, dialect)
+
+
 class BinaryData(TypeDecorator[bytes | None]):
     impl = LargeBinary
     cache_ok = True

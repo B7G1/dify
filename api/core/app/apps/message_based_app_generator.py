@@ -6,6 +6,7 @@ from typing import Union, cast
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from configs import dify_config
 from core.app.app_config.entities import EasyUIBasedAppConfig, EasyUIBasedAppModelConfigFrom
 from core.app.apps.base_app_generator import BaseAppGenerator
 from core.app.apps.base_app_queue_manager import AppQueueManager
@@ -196,7 +197,7 @@ class MessageBasedAppGenerator(BaseAppGenerator):
                 conversation_id=conversation.id,
                 inputs=application_generate_entity.inputs,
                 query=application_generate_entity.query,
-                message="",
+                message={} if dify_config.DB_TYPE == "dm" else "",
                 message_tokens=0,
                 message_unit_price=0,
                 message_price_unit=0,

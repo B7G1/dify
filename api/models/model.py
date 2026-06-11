@@ -48,7 +48,7 @@ from .enums import (
     TagType,
 )
 from .provider_ids import GenericProviderID
-from .types import EnumText, LongText, StringUUID
+from .types import DMEmptyStringSafeLongText, EnumText, LongText, StringUUID
 
 if TYPE_CHECKING:
     from .workflow import Workflow
@@ -1367,7 +1367,7 @@ class Message(Base):
     message_price_unit: Mapped[Decimal] = mapped_column(
         sa.Numeric(10, 7), nullable=False, server_default=sa.text("0.001")
     )
-    answer: Mapped[str] = mapped_column(LongText, nullable=False)
+    answer: Mapped[str] = mapped_column(DMEmptyStringSafeLongText, nullable=False)
     answer_tokens: Mapped[int] = mapped_column(sa.Integer, nullable=False, server_default=sa.text("0"))
     answer_unit_price: Mapped[Decimal] = mapped_column(sa.Numeric(10, 4), nullable=False)
     answer_price_unit: Mapped[Decimal] = mapped_column(
